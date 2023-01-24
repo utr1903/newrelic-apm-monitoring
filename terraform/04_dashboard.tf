@@ -191,4 +191,121 @@ resource "newrelic_one_dashboard" "app" {
       }
     }
   }
+
+  ####################
+  ### TRANSACTIONS ###
+  ####################
+  page {
+    name = "Transactions"
+
+    # Page description
+    widget_markdown {
+      title  = "Page description"
+      row    = 1
+      column = 1
+      height = 3
+      width  = 3
+
+      text = "## Transactions"
+    }
+
+    # Overview
+    widget_billboard {
+      title  = "Overview"
+      row    = 1
+      column = 4
+      height = 3
+      width  = 4
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Transaction SELECT count(*) AS `Total transactions`, average(duration)*1000 AS `Average duration (ms)`, percentile(duration*1000, 90) as `Slowest duration (ms)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' LIMIT MAX"
+      }
+    }
+
+    # Transaction count by instance
+    widget_line {
+      title  = "Transaction count by instance"
+      row    = 1
+      column = 8
+      height = 3
+      width  = 5
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Transaction SELECT rate(count(*), 1 minute) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET host LIMIT MAX TIMESERIES"
+        # query      = "FROM Transaction SELECT count(*) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET host LIMIT 10 TIMESERIES"
+      }
+    }
+
+    # Transaction count by type
+    widget_pie {
+      title  = "Transaction count by type"
+      row    = 4
+      column = 1
+      height = 4
+      width  = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Transaction SELECT count(*) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET transactionType LIMIT 10"
+      }
+    }
+
+    # Transaction count by method
+    widget_pie {
+      title  = "Transaction count by method"
+      row    = 4
+      column = 4
+      height = 4
+      width  = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Transaction SELECT count(*) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET request.method LIMIT 10"
+      }
+    }
+
+    # Transaction count by name
+    widget_bar {
+      title  = "Transaction count by name"
+      row    = 4
+      column = 7
+      height = 4
+      width  = 6
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Transaction SELECT count(*) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET name LIMIT 20"
+      }
+    }
+
+    # Transactions with errors
+    widget_pie {
+      title  = "Transactions with errors"
+      row    = 10
+      column = 1
+      height = 3
+      width  = 8
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM TransactionError SELECT host, error.expected, error.class, error.message WHERE entity.guid = '${data.newrelic_entity.app.guid}' LIMIT 20"
+      }
+    }
+
+    # Transaction count by URI
+    widget_bar {
+      title  = "Transaction count by URI"
+      row    = 10
+      column = 9
+      height = 4
+      width  = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Transaction SELECT count(*) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET request.uri LIMIT 20"
+      }
+    }
+  }
 }
