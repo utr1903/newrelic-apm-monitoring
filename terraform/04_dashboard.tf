@@ -281,7 +281,7 @@ resource "newrelic_one_dashboard" "app" {
     }
 
     # Transactions with errors
-    widget_pie {
+    widget_table {
       title  = "Transactions with errors"
       row    = 10
       column = 1
